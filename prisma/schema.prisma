@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("SUPABASE_DATABASE_URL")
+  directUrl = env("SUPABASE_DIRECT_URL")
+}
+
+model ReferralCode {
+  id            String   @default(cuid())
+  referralCode  String   @unique @id
+  redeemed      Boolean  @default(false)
+  generatedById String   @unique
+  freeTrial     Int      @default(7)
+  discount      Int      @default(50)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  generatedBy   User     @relation("GeneratedByUser", fields: [generatedById], references: [mongoId])
+  redeemedBy    User[]   @relation("RedeemedByUser")
+  redeemedAndPayBy  User[]   @relation("RedeemedAndPayByUser") // Updated to allow multiple users
+
+  newUserPlans     NewUserPlan[] // Refers to related NewUserPlan
+
+  UserPurchases UserPurchases[]
+
+  UserAdiraPlan UserAdiraPlan[]
+}
+
+model Plan {
+  name      String   @id @unique
+  token     Float
+  gptToken  Int      @default(0)
+  caseSearchToken  Int  @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  session   Int      @default(1)
+  duration String    @default("monthly")
+  users     User[]
+  planUsers           UserPlan[]
+
+}
+
+model Admin{
+    id         String  @id @default(cuid())
+    users      User[]       @relation("AdminUsers")
+
+}
+
+model User {
+  mongoId                 String        @id
+  phoneNumber             String        @unique @db.VarChar(10)
+  planName                String        @default("free")
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  tokenUsed               Float         @default(0.0)
+  gptTokenUsed            Int           @default(0)
+  caseSearchTokenUsed     Int           @default(0)
+  totalTokenUsed          Float         @default(0.0)
+  totalGptTokens          Int           @default(0)
+  totalCaseSearchTokens   Int           @default(0)
+  duration                Int           @default(0)
+  StateLocation           String        @default("")
+  generatedReferralCodeId String?
+  redeemedReferralCodeId  String?
+  adminUserId  String?
+  generatedReferralCode   ReferralCode? @relation("GeneratedByUser")
+  sessions                Session[]
+  numberOfSessions        Int           @default(1)
+  plan                    Plan          @relation(fields: [planName], references: [name])
+  plans                   UserPlan[]
+  newplans                NewUserPlan[]
+  redeemedReferralCode    ReferralCode? @relation("RedeemedByUser", fields: [redeemedReferralCodeId], references: [referralCode])
+  adminUser                Admin?        @relation("AdminUsers", fields: [adminUserId], references: [id])
+  isCasesearch  Boolean  @default(true)  
+  NewPlan NewPlan[]
+  redeemedAndPayByCodes   ReferralCode[] @relation("RedeemedAndPayByUser") // Tracks multiple redeemed and paid referrals
+  feedbacks              Feedback[]    @relation("UserFeedback") // New relation field for Feedback
+  isambassadorBenifined    Boolean? 
+
+
+  UserPurchases UserPurchases[]
+
+  UserAdiraPlan UserAdiraPlan[]
+}
+
+model UserPlan {
+  userId   String
+  planName String
+  user     User @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+  plan     Plan @relation(fields: [planName], references: [name], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+ 
+  expiresAt DateTime? 
+
+  @@id([userId, planName])
+}
+
+
+
+model NewUserPlan {
+  userId   String
+  planName String
+  user     User    @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+  plan     NewPlan @relation(fields: [planName], references: [name], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  subscriptionId   String  @default("")
+  expiresAt DateTime?
+  isActive  Boolean  @default(false)
+ // Add referralCodeId to store the referral code string
+  referralCodeId String?   // This will store the referral code string
+  referralCode   ReferralCode? @relation(fields: [referralCodeId], references: [referralCode], onDelete: SetNull) // Relation to ReferralCode
+  Paidprice   Int @default(0)
+  isCouponCode   String  @default("")
+
+  @@id([userId, planName])
+}
+
+model NewPlan {
+  name      String   @id @unique
+  legalGptAccess  Boolean  @default(false)
+  AICaseSearchAccess  Boolean  @default(false)
+  AISummerizer  Boolean  @default(false)
+  AddOnAccess  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  session   Int      @default(1)
+  duration String    @default("monthly")
+  users     User[]
+  planUsers           NewUserPlan[]
+ 
+
+  UserPurchases UserPurchases[]
+}
+model UserPurchases {
+  userId         String
+  planName       String
+  user           User        @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+  plan           NewPlan     @relation(fields: [planName], references: [name], onDelete: Cascade)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now())
+  subscriptionId String      @default("")
+  expiresAt      DateTime?
+  referralCodeId String?     // This will store the referral code string
+  referralCode   ReferralCode? @relation(fields: [referralCodeId], references: [referralCode], onDelete: SetNull) // Relation to ReferralCode
+  Paidprice      Int         @default(0)
+  isCouponCode   String      @default("")
+
+  @@id([userId, planName]) // Composite primary key
+}
+
+
+model AdiraPlan{
+  name String @id
+  price Int
+  duration String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+  isTypeOfDocument  Boolean
+  isPromptDrafting Boolean
+  isUploadOwnDocument Boolean
+  isUploadOwnDocumentWithPrompt Boolean
+  isDownloadWithWaterMark Boolean
+  isSummerizeDocument Boolean
+  isSnippet   Boolean
+  isAnalysieAnyDocument Boolean
+
+
+  UserAdiraPlan UserAdiraPlan[]
+}
+
+
+
+model UserAdiraPlan {
+  userId   String
+  planName String
+  user     User    @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+  plan     AdiraPlan @relation(fields: [planName], references: [name], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  subscriptionId   String  @default("")
+  expiresAt DateTime?
+  isActive  Boolean  @default(false)
+  referralCodeId String?   // This will store the referral code string
+  referralCode   ReferralCode? @relation(fields: [referralCodeId], references: [referralCode], onDelete: SetNull) // Relation to ReferralCode
+  Paidprice   Int @default(0)
+  isCouponCode   String  @default("")
+
+  @@id([userId, planName])
+}
+
+
+
+
+model Model {
+  name      String    @id
+  version   Float
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sessions  Session[]
+}
+
+model Session {
+  id        String    @id @default(uuid())
+  name      String
+  userId    String
+  modelName String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+  model     Model     @relation(fields: [modelName], references: [name])
+  user      User      @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Message {
+  id        String    @id @default(uuid())
+  text      String
+  textArray String[]  @default([]) // Required list with default empty array.
+  isDocument  String?
+  contextId  String?
+  contextMessage Message? @relation("MessageContext", fields: [contextId], references: [id])
+
+  isUser    Boolean
+  sessionId String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  feedback  Feedback?
+  session   Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  Message       Message[] @relation("MessageContext")
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  messageId String   @unique
+  rating         Int?
+  impression     String   @default("Positive") // or "Negative"
+  feedbackType   String   @default("ResponseGenerated") // or "References" or "Judgement"
+  feedbackMessage String
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id])
+  userId         String
+  user           User     @relation("UserFeedback", fields: [userId], references: [mongoId]) // Specifying relation name
+}
