@@ -65,17 +65,16 @@ app.use("", (req, res) => {
 });
 
 // Schedule task to run every minute (for testing purposes)
-cron.schedule("0 0 * * *", async () => {
+cron.schedule("0 1 * * *", async () => {
   console.log("Running scheduled task to handle expired plans");
   await DbAutomationService.handleExpiredPlans();
+  await DbAutomationService.handleExpiredAdiraPlans();
 });
 
 // Call the function immediately to test it
 (async () => {
   try {
-    await DbAutomationService.handleExpiredPlans();
-    // await DbAutomationService.activateTodaysNewUserPlans();
-    // await DbAutomationService.deactivateExpiredUserPlans();
+    await DbAutomationService.handleExpiredAdiraPlans();
   } catch (error) {
     console.error("Error removing expired user plans:", error);
   }
