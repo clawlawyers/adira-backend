@@ -69,7 +69,7 @@ async function checkClientAuth(req, res, next) {
     if (!client) {
       throw new AppError("No user found", StatusCodes.NOT_FOUND);
     }
-    req.body.client = client;
+    req.user = client;
     next();
   } catch (error) {
     const errorResponse = ErrorResponse({}, error.message);

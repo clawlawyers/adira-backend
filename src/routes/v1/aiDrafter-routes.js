@@ -80,4 +80,10 @@ router.get(
   AiDrafter.retriveAdiraPlan
 );
 
+router.post(
+  "/consumeDocumentToken",
+  authMiddleware.checkClientAuth,
+  AiDrafter.consumeDocumentToken
+);
+
 module.exports = router;

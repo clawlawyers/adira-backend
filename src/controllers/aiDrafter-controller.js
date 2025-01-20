@@ -1446,7 +1446,7 @@ async function createAdiraPlan(req, res) {
 
 async function retriveAdiraPlan(req, res) {
   console.log("hi");
-  const { _id } = req.body.client;
+  const { _id } = req.user;
   try {
     const plan = await prisma.userAdiraPlan.findFirst({
       where: {
@@ -1461,6 +1461,27 @@ async function retriveAdiraPlan(req, res) {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Failed to retrieve plan." });
+  }
+}
+
+async function consumeDocumentToken(req, res) {
+  try {
+    const { _id } = req.user;
+    const consumeToken = prisma.userAdiraPlan.update({
+      where: {
+        userId: _id,
+      },
+      data: {
+        totalDocumentsUsed: {
+          increment: 1,
+        },
+      },
+    });
+
+    return res.status(200).json({ consumeToken });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Failed to consume document token." });
   }
 }
 
@@ -1496,4 +1517,5 @@ module.exports = {
   getpdfpagecount,
   retriveAdiraPlan,
   createAdiraPlan,
+  consumeDocumentToken,
 };
