@@ -1467,9 +1467,19 @@ async function retriveAdiraPlan(req, res) {
 async function consumeDocumentToken(req, res) {
   try {
     const { _id } = req.user;
-    const consumeToken = prisma.userAdiraPlan.update({
+    console.log(req.user._id.toHexString());
+    const user = await prisma.userAdiraPlan.findFirst({
       where: {
-        userId: _id,
+        userId: _id.toHexString(),
+      },
+    });
+    console.log(user);
+    const consumeToken = await prisma.userAdiraPlan.update({
+      where: {
+        userId_planName: {
+          userId: user.userId,
+          planName: user.planName,
+        },
       },
       data: {
         totalDocumentsUsed: {
@@ -1477,6 +1487,8 @@ async function consumeDocumentToken(req, res) {
         },
       },
     });
+
+    console.log(consumeToken);
 
     return res.status(200).json({ consumeToken });
   } catch (error) {
