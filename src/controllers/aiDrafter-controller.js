@@ -277,8 +277,8 @@ async function fetchGetRequirements({ doc_id, type }) {
 
 async function generateDocument(req, res) {
   try {
-    const { doc_id } = req.body;
-    const fetchedData = await fetchGenerateDocument({ doc_id });
+    const { doc_id, location } = req.body;
+    const fetchedData = await fetchGenerateDocument({ doc_id, location });
     return res.status(StatusCodes.OK).json(SuccessResponse({ fetchedData }));
   } catch (error) {
     console.log(error);
@@ -289,13 +289,13 @@ async function generateDocument(req, res) {
   }
 }
 
-async function fetchGenerateDocument({ doc_id }) {
+async function fetchGenerateDocument({ doc_id, location }) {
   try {
     // Dynamically import node-fetch
     const fetch = (await import("node-fetch")).default;
     const response = await fetch(`${AL_DRAFTER_API}/generate_document`, {
       method: "POST",
-      body: JSON.stringify({ doc_id }),
+      body: JSON.stringify({ doc_id, location }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -316,8 +316,11 @@ async function fetchGenerateDocument({ doc_id }) {
 
 async function getDocumentPromptRequirements(req, res) {
   try {
-    const { doc_id } = req.body;
-    const fetchedData = await fetchGetDocumentPromptRequirements({ doc_id });
+    const { doc_id, location } = req.body;
+    const fetchedData = await fetchGetDocumentPromptRequirements({
+      doc_id,
+      location,
+    });
     return res.status(StatusCodes.OK).json(SuccessResponse({ fetchedData }));
   } catch (error) {
     console.log(error);
@@ -328,7 +331,7 @@ async function getDocumentPromptRequirements(req, res) {
   }
 }
 
-async function fetchGetDocumentPromptRequirements({ doc_id }) {
+async function fetchGetDocumentPromptRequirements({ doc_id, location }) {
   try {
     // Dynamically import node-fetch
     const fetch = (await import("node-fetch")).default;
@@ -336,7 +339,7 @@ async function fetchGetDocumentPromptRequirements({ doc_id }) {
       `${AL_DRAFTER_API}/get_document_prompt_requirements`,
       {
         method: "POST",
-        body: JSON.stringify({ doc_id }),
+        body: JSON.stringify({ doc_id, location }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -763,7 +766,8 @@ async function fetchCounterFavor({ doc_id, headpoint_to_find }) {
 
 async function apiGetTypes(req, res) {
   try {
-    const fetchedData = await fetchTypes();
+    const { location } = req.body;
+    const fetchedData = await fetchTypes(location);
     return res.status(StatusCodes.OK).json(SuccessResponse({ fetchedData }));
   } catch (error) {
     console.error(error);
@@ -774,11 +778,21 @@ async function apiGetTypes(req, res) {
   }
 }
 
-async function fetchTypes() {
+async function fetchTypes(location) {
   try {
+    let type;
+    if (location === "india") {
+      type = "get_types";
+    }
+    if (location === "uk") {
+      type = "UK_get_types";
+    }
+    if (location === "us") {
+      type = "US_get_types";
+    }
     // Dynamically import node-fetch
     const fetch = (await import("node-fetch")).default;
-    const response = await fetch(`${AL_DRAFTER_API}/api/get_types`);
+    const response = await fetch(`${AL_DRAFTER_API}/api/${type}`);
     if (!response.ok) {
       const errorText = await response.text(); // Get the error message from the response
       throw new Error(
