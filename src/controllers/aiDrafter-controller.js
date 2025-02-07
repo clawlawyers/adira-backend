@@ -1467,8 +1467,8 @@ async function retriveAdiraPlan(req, res) {
         userId: _id,
       },
       include: {
-        user: true,
-        plan: true,
+        User: true,
+        AllPlan: true,
       },
     });
     res.status(200).json({ plan });
