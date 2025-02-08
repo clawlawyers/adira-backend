@@ -1482,13 +1482,13 @@ async function consumeDocumentToken(req, res) {
   try {
     const { _id } = req.user;
     console.log(req.user._id.toHexString());
-    const user = await prisma.userAdiraPlan.findFirst({
+    const user = await prisma.userAllPlan.findFirst({
       where: {
         userId: _id.toHexString(),
       },
     });
     console.log(user);
-    const consumeToken = await prisma.userAdiraPlan.update({
+    const consumeToken = await prisma.userAllPlan.update({
       where: {
         userId_planName: {
           userId: user.userId,
@@ -1496,7 +1496,7 @@ async function consumeDocumentToken(req, res) {
         },
       },
       data: {
-        totalDocumentsUsed: {
+        UsedAdiraToken: {
           increment: 1,
         },
       },
