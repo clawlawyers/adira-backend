@@ -629,8 +629,7 @@ async function verifySubscription(req, res) {
       // );
 
       res.status(200).json({
-        status:
-          "Payment verified, subscription updated, and refund processed successfully",
+        status: "Payment verified",
       });
     } catch (error) {
       console.error("Error in processing subscription or refund:", error);
