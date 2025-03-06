@@ -534,7 +534,7 @@ async function fetchGptUserByPhoneNumbers(phoneNumbers) {
 
 async function getUserPlan(mongoId) {
   try {
-    const plans = await prisma.newUserPlan.findMany({
+    const plans = await prisma.userAllPlan.findMany({
       where: {
         userId: mongoId,
       },
@@ -567,7 +567,34 @@ async function fetchGptUser(mongoId) {
 
     console.log(user);
 
-    let plans = await prisma.newUserPlan.findMany({
+    const plan = await getUserPlan(mongoId); // it can be open
+    console.log(plan.length);
+    console.log(new Date());
+
+    // This free plan only for some occasionally
+
+    // if (plan.length === 0) {
+    //   console.log("user do not have any plan. plan will be creating");
+
+    //   const createAt = new Date();
+    //   const expiresAt = new Date(createAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    //   await updateUserAdiraPlan(
+    //     mongoId,
+    //     "FREE",
+    //     "15 MINUTES TRIAL",
+    //     "",
+    //     createAt,
+    //     null,
+    //     "",
+    //     null,
+    //     0
+    //   );
+
+    //   console.log("plan created");
+    // }
+
+    let plans = await prisma.userAllPlan.findMany({
       where: {
         userId: mongoId,
       },
@@ -575,33 +602,6 @@ async function fetchGptUser(mongoId) {
         plan: true,
       },
     });
-
-    const plan = await getUserPlan(mongoId); // it can be open
-    console.log(plan.length);
-    console.log(new Date());
-
-    // This free plan only for some occasionally
-
-    if (plan.length === 0) {
-      console.log("user do not have any plan. plan will be creating");
-
-      const createAt = new Date();
-      const expiresAt = new Date(createAt.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-      await updateUserPlan(
-        mongoId,
-        "FREE_M",
-        "EVENT_OCCATION_FREE",
-        "",
-        createAt,
-        null,
-        "",
-        expiresAt,
-        0
-      );
-
-      console.log("plan created");
-    }
 
     if (!user) return null;
     return {
