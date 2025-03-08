@@ -1629,63 +1629,71 @@ async function updateUserAdiraPlan(
     // const today = new Date().setHours(0, 0, 0, 0); // Set today's date to 00:00:00
     let updatedUserPlan;
 
-    // if (newPlan === "FREE_M") {
-    //   updatedUserPlan = await prisma.newUserPlan.create({
-    //     data: {
-    //       userId: mongoId,
-    //       planName: newPlan,
-    //       subscriptionId: razorpay_subscription_id,
-    //       isActive: true,
-    //       createdAt,
-    //       expiresAt,
-    //       Paidprice: amount,
-    //     },
-    //   });
-    //   return {
-    //     user: updatedUserPlan.mongoId,
-    //     plan: updatedUserPlan.planName,
-    //   };
-    // }
+    if (existingSubscription == "compane") {
+      const activePlan = await prisma.userAllPlan.findFirst({
+        where: {
+          userId: mongoId,
+          // subscriptionId: existingSubscription,
+          isActive: true,
+        },
+      });
 
-    // if (razorpay_subscription_id === "ambassador") {
-    //   updatedUserPlan = await prisma.newUserPlan.create({
-    //     data: {
-    //       userId: mongoId,
-    //       planName: newPlan,
-    //       subscriptionId: razorpay_subscription_id,
-    //       isActive: true,
-    //       createdAt,
-    //       expiresAt,
-    //       Paidprice: amount,
-    //     },
-    //   });
-    //   return {
-    //     user: updatedUserPlan.mongoId,
-    //     plan: updatedUserPlan.planName,
-    //   };
-    // }
+      // If a plan is found, delete it
+      if (activePlan) {
+        deletePlan = await prisma.userAllPlan.delete({
+          where: {
+            userId_planName: {
+              userId: activePlan.userId,
+              planName: activePlan.planName,
+            },
+          },
+        });
+      }
 
-    // if (newPlan === "ADDON_M") {
-    //   updatedUserPlan = await prisma.newUserPlan.create({
-    //     data: {
-    //       userId: mongoId,
-    //       planName: newPlan,
-    //       subscriptionId: razorpay_subscription_id,
-    //       isActive: true,
-    //       createdAt,
-    //       expiresAt,
-    //       Paidprice: amount,
-    //     },
-    //   });
-    //   return {
-    //     user: updatedUserPlan.mongoId,
-    //     plan: updatedUserPlan.planName,
-    //   };
-    // }
+      updatedUserPlan = await prisma.userAllPlan.create({
+        data: {
+          userId: mongoId,
+          planName: newPlan,
+          subscriptionId: razorpay_subscription_id,
+          createdAt,
+          expiresAt,
+          isActive: true,
+          Paidprice: parseInt(amount),
+          totalDocuments: 3,
+          totalDocumentsUsed: 0,
+        },
+        include: {
+          plan: true,
+        },
+      });
+
+      return {
+        user: updatedUserPlan.mongoId,
+        plan: updatedUserPlan.planName,
+      };
+    }
+
+    if (newPlan === "FREE") {
+      updatedUserPlan = await prisma.userAllPlan.create({
+        data: {
+          userId: mongoId,
+          planName: newPlan,
+          subscriptionId: razorpay_subscription_id,
+          isActive: true,
+          createdAt,
+          expiresAt,
+          Paidprice: parseInt(amount),
+        },
+      });
+      return {
+        user: updatedUserPlan.mongoId,
+        plan: updatedUserPlan.planName,
+      };
+    }
 
     if (existingSubscription !== "") {
       // Find the plan that is active
-      const activePlan = await prisma.userAdiraPlan.findFirst({
+      const activePlan = await prisma.userAllPlan.findFirst({
         where: {
           userId: mongoId,
           subscriptionId: existingSubscription,
@@ -1695,7 +1703,7 @@ async function updateUserAdiraPlan(
 
       // If a plan is found, delete it
       if (activePlan) {
-        deletePlan = await prisma.userAdiraPlan.delete({
+        deletePlan = await prisma.userAllPlan.delete({
           where: {
             userId_planName: {
               userId: activePlan.userId,
@@ -1706,7 +1714,7 @@ async function updateUserAdiraPlan(
       }
 
       if (refferalCode || couponCode) {
-        updatedUserPlan = await prisma.userAdiraPlan.create({
+        updatedUserPlan = await prisma.userAllPlan.create({
           data: {
             userId: mongoId,
             planName: newPlan,
@@ -1716,7 +1724,7 @@ async function updateUserAdiraPlan(
             expiresAt,
             referralCodeId: refferalCode,
             isCouponCode: couponCode,
-            Paidprice: amount,
+            Paidprice: parseInt(amount),
           },
           include: {
             plan: true,
@@ -1737,7 +1745,7 @@ async function updateUserAdiraPlan(
           });
         }
       } else {
-        updatedUserPlan = await prisma.userAdiraPlan.create({
+        updatedUserPlan = await prisma.userAllPlan.create({
           data: {
             userId: mongoId,
             planName: newPlan,
@@ -1745,7 +1753,7 @@ async function updateUserAdiraPlan(
             createdAt,
             expiresAt,
             isActive: true,
-            Paidprice: amount,
+            Paidprice: parseInt(amount),
           },
           include: {
             plan: true,
@@ -1754,7 +1762,7 @@ async function updateUserAdiraPlan(
       }
     } else {
       if (refferalCode || couponCode) {
-        updatedUserPlan = await prisma.userAdiraPlan.create({
+        updatedUserPlan = await prisma.userAllPlan.create({
           data: {
             userId: mongoId,
             planName: newPlan,
@@ -1764,7 +1772,7 @@ async function updateUserAdiraPlan(
             expiresAt,
             referralCodeId: refferalCode,
             isCouponCode: couponCode,
-            Paidprice: amount,
+            Paidprice: parseInt(amount),
           },
           include: {
             plan: true,
@@ -1785,7 +1793,7 @@ async function updateUserAdiraPlan(
           });
         }
       } else {
-        updatedUserPlan = await prisma.userAdiraPlan.create({
+        updatedUserPlan = await prisma.userAllPlan.create({
           data: {
             userId: mongoId,
             planName: newPlan,
@@ -1793,7 +1801,7 @@ async function updateUserAdiraPlan(
             createdAt,
             expiresAt,
             isActive: true,
-            Paidprice: amount,
+            Paidprice: parseInt(amount),
           },
           include: {
             plan: true,

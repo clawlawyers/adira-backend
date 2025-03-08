@@ -1471,7 +1471,37 @@ async function retriveAdiraPlan(req, res) {
         AllPlan: true,
       },
     });
-    res.status(200).json({ plan });
+
+    if (plan.length === 0) {
+      console.log("user do not have any plan. plan will be creating");
+
+      const createAt = new Date();
+      // const expiresAt = new Date(createAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      await updateUserAdiraPlan(
+        mongoId,
+        "FREE",
+        "15 MINUTES TRIAL",
+        "",
+        createAt,
+        null,
+        "",
+        null,
+        0
+      );
+
+      console.log("plan created");
+    }
+    let plans = await prisma.userAllPlan.findMany({
+      where: {
+        userId: mongoId,
+      },
+      include: {
+        plan: true,
+      },
+    });
+
+    res.status(200).json({ plans });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Failed to retrieve plan." });
