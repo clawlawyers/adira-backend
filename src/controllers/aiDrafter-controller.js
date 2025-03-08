@@ -1463,7 +1463,7 @@ async function retriveAdiraPlan(req, res) {
   console.log("hi");
   const { _id } = req.user;
   try {
-    const plan = await prisma.userAllPlan.findFirst({
+    const plan = await prisma.userAllPlan.findMany({
       where: {
         userId: _id,
       },
