@@ -1498,7 +1498,8 @@ async function retriveAdiraPlan(req, res) {
         userId: _id,
       },
       include: {
-        plan: true,
+        User: true,
+        AllPlan: true,
       },
     });
 
