@@ -10,6 +10,7 @@ const AdiraAdmin = require("../models/adiraAdmin");
 const bcrypt = require("bcrypt");
 const prisma = require("../config/prisma-client");
 const TalkToExpert = require("../models/talkToExpert");
+const { updateUserAdiraPlan } = require("../services/gpt-service");
 
 async function uploadDocument(req, res) {
   try {
@@ -1479,7 +1480,7 @@ async function retriveAdiraPlan(req, res) {
       // const expiresAt = new Date(createAt.getTime() + 30 * 24 * 60 * 60 * 1000);
 
       await updateUserAdiraPlan(
-        mongoId,
+        _id,
         "FREE",
         "15 MINUTES TRIAL",
         "",
@@ -1494,7 +1495,7 @@ async function retriveAdiraPlan(req, res) {
     }
     let plans = await prisma.userAllPlan.findMany({
       where: {
-        userId: mongoId,
+        userId: _id,
       },
       include: {
         plan: true,
