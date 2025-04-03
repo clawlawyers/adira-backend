@@ -22,9 +22,13 @@ model ReferralCode {
   redeemedBy         User[]               @relation("RedeemedByUser")
   UserAdiraPlan      UserAdiraPlan[]
   UserAdiraPurchases UserAdiraPurchases[]
-  UserAllPlan        UserAllPlan[]
   UserPurchases      UserPurchases[]
   redeemedAndPayBy   User[]               @relation("RedeemedAndPayByUser")
+  UserAllPlan        UserAllPlan[]
+
+  UserAllUKPlan UserAllUKPlan[]
+
+  UserAllUSPlan UserAllUSPlan[]
 }
 
 model Plan {
@@ -54,6 +58,7 @@ model User {
   tokenUsed               Float                @default(0.0)
   generatedReferralCodeId String?
   StateLocation           String               @default("")
+  currencyType            String?              @default("INR")
   duration                Int                  @default(0)
   totalTokenUsed          Float                @default(0.0)
   numberOfSessions        Int                  @default(1)
@@ -74,11 +79,15 @@ model User {
   redeemedReferralCode    ReferralCode?        @relation("RedeemedByUser", fields: [redeemedReferralCodeId], references: [referralCode])
   UserAdiraPlan           UserAdiraPlan[]
   UserAdiraPurchases      UserAdiraPurchases[]
-  UserAllPlan             UserAllPlan[]
   plans                   UserPlan[]
   UserPurchases           UserPurchases[]
   NewPlan                 NewPlan[]            @relation("NewPlanToUser")
   redeemedAndPayByCodes   ReferralCode[]       @relation("RedeemedAndPayByUser")
+  UserAllPlan             UserAllPlan[]
+
+  UserAllUKPlan UserAllUKPlan[]
+
+  UserAllUSPlan UserAllUSPlan[]
 }
 
 model UserPlan {
@@ -178,6 +187,127 @@ model AdiraPlan {
   UserAdiraPurchases            UserAdiraPurchases[]
 }
 
+model AllPlan {
+  name          String        @id
+  price         Int
+  duration      String
+  legalGptToken Int
+  LegalGPTime   Int
+  AdiraToken    Int
+  AdiraTime     Int
+  WarroomToken  Int
+  WarroomTime   Int
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now())
+  UserAllPlan   UserAllPlan[]
+}
+
+model AllUKPlan {
+  name          String   @id
+  price         Float
+  duration      String
+  legalGptToken Int
+  LegalGPTime   Int
+  AdiraToken    Int
+  AdiraTime     Int
+  WarroomToken  Int
+  WarroomTime   Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  // UserAllPlan   UserAllPlan[]
+
+  UserAllUKPlan UserAllUKPlan[]
+}
+
+model AllUSPlan {
+  name          String   @id
+  price         Float
+  duration      String
+  legalGptToken Int
+  LegalGPTime   Int
+  AdiraToken    Int
+  AdiraTime     Int
+  WarroomToken  Int
+  WarroomTime   Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  // UserAllPlan   UserAllPlan[]
+
+  UserAllUSPlan UserAllUSPlan[]
+}
+
+model UserAllPlan {
+  userId            String
+  planName          String
+  UsedlegalGptToken Int           @default(0)
+  UsedLegalGPTime   Int           @default(0)
+  UsedAdiraToken    Int           @default(0)
+  UsedAdiraTime     Int           @default(0)
+  UsedWarroomToken  Int           @default(0)
+  UsedWarroomTime   Int           @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now())
+  subscriptionId    String        @default("")
+  expiresAt         DateTime?
+  isActive          Boolean       @default(false)
+  referralCodeId    String?
+  Paidprice         Int           @default(0)
+  isCouponCode      String        @default("")
+  plan              AllPlan       @relation(fields: [planName], references: [name], onDelete: Cascade)
+  referralCode      ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
+  user              User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+
+  @@id([userId, planName])
+}
+
+model UserAllUKPlan {
+  userId            String
+  planName          String
+  UsedlegalGptToken Int           @default(0)
+  UsedLegalGPTime   Int           @default(0)
+  UsedAdiraToken    Int           @default(0)
+  UsedAdiraTime     Int           @default(0)
+  UsedWarroomToken  Int           @default(0)
+  UsedWarroomTime   Int           @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now())
+  subscriptionId    String        @default("")
+  expiresAt         DateTime?
+  isActive          Boolean       @default(false)
+  referralCodeId    String?
+  Paidprice         Float         @default(0)
+  isCouponCode      String        @default("")
+  plan              AllUKPlan     @relation(fields: [planName], references: [name], onDelete: Cascade)
+  referralCode      ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
+  user              User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+
+  @@id([userId, planName])
+}
+
+model UserAllUSPlan {
+  userId            String
+  planName          String
+  UsedlegalGptToken Int           @default(0)
+  UsedLegalGPTime   Int           @default(0)
+  UsedAdiraToken    Int           @default(0)
+  UsedAdiraTime     Int           @default(0)
+  UsedWarroomToken  Int           @default(0)
+  UsedWarroomTime   Int           @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now())
+  subscriptionId    String        @default("")
+  expiresAt         DateTime?
+  isActive          Boolean       @default(false)
+  referralCodeId    String?
+  Paidprice         Float         @default(0)
+  isCouponCode      String        @default("")
+  plan              AllUSPlan     @relation(fields: [planName], references: [name], onDelete: Cascade)
+  referralCode      ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
+  user              User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+
+  @@id([userId, planName])
+}
+
 model UserAdiraPlan {
   userId             String
   planName           String
@@ -249,43 +379,4 @@ model Feedback {
   userId          String
   message         Message  @relation(fields: [messageId], references: [id])
   user            User     @relation("UserFeedback", fields: [userId], references: [mongoId])
-}
-
-model AllPlan {
-  name          String        @id
-  price         Int
-  duration      String
-  legalGptToken Int
-  LegalGPTime   Int
-  AdiraToken    Int
-  AdiraTime     Int
-  WarroomToken  Int
-  WarroomTime   Int
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @default(now())
-  UserAllPlan   UserAllPlan[]
-}
-
-model UserAllPlan {
-  userId            String
-  planName          String
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @default(now())
-  subscriptionId    String        @default("")
-  expiresAt         DateTime?
-  isActive          Boolean       @default(false)
-  referralCodeId    String?
-  Paidprice         Int           @default(0)
-  isCouponCode      String        @default("")
-  UsedAdiraTime     Int           @default(0)
-  UsedAdiraToken    Int           @default(0)
-  UsedLegalGPTime   Int           @default(0)
-  UsedWarroomTime   Int           @default(0)
-  UsedWarroomToken  Int           @default(0)
-  UsedlegalGptToken Int           @default(0)
-  AllPlan           AllPlan       @relation(fields: [planName], references: [name], onDelete: Cascade)
-  ReferralCode      ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
-  User              User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
-
-  @@id([userId, planName])
 }

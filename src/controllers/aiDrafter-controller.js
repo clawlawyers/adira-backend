@@ -606,6 +606,45 @@ async function fetchEditDocument({ doc_id, edit_query }) {
   }
 }
 
+async function rewriteDocument(req, res) {
+  try {
+    const { doc_id, document } = req.body;
+    const fetchedData = await fetchRewriteDocument({ doc_id, document });
+    return res.status(StatusCodes.OK).json(SuccessResponse({ fetchedData }));
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchRewriteDocument({ doc_id, document }) {
+  try {
+    // Dynamically import node-fetch
+    const fetch = (await import("node-fetch")).default;
+    const response = await fetch(`${AL_DRAFTER_API}/rewrite_document`, {
+      method: "POST",
+      body: JSON.stringify({ doc_id, document }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
 async function summaryHeadings(req, res) {
   try {
     const { doc_id, headpoint_to_find } = req.body;
@@ -1576,4 +1615,5 @@ module.exports = {
   retriveAdiraPlan,
   createAdiraPlan,
   consumeDocumentToken,
+  rewriteDocument,
 };

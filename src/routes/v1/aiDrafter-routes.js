@@ -86,4 +86,10 @@ router.post(
   AiDrafter.consumeDocumentToken
 );
 
+router.post(
+  "/rewrite_document",
+  authMiddleware.checkClientAuth,
+  AiDrafter.rewriteDocument
+);
+
 module.exports = router;
