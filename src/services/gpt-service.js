@@ -1609,6 +1609,26 @@ async function updateUserPlan(
   }
 }
 
+async function updateCurrency(mongoId, currencyType) {
+  try {
+    const updatedUser = await prisma.user.update({
+      where: {
+        mongoId: mongoId,
+      },
+      data: {
+        currencyType: currencyType,
+      },
+    });
+    return updatedUser.currencyType;
+  } catch (error) {
+    console.error(error);
+    throw new AppError(
+      "Error while storing used time service",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
 async function updateUserAdiraPlan(
   mongoId,
   newPlan,
@@ -1618,18 +1638,17 @@ async function updateUserAdiraPlan(
   refferalCode,
   couponCode,
   expiresAt,
-  amount
+  amount,
+  currencyType
 ) {
   console.log(mongoId, newPlan);
 
   refferalCode = refferalCode === "" ? null : refferalCode;
 
   try {
-    // const createdAtDate = new Date(createdAt).setHours(0, 0, 0, 0); // Set time to 00:00:00
-    // const today = new Date().setHours(0, 0, 0, 0); // Set today's date to 00:00:00
     let updatedUserPlan;
 
-    if (existingSubscription == "compane") {
+    if (existingSubscription == "compane" && currencyType === "INR") {
       const activePlan = await prisma.userAllPlan.findFirst({
         where: {
           userId: mongoId,
@@ -1659,8 +1678,6 @@ async function updateUserAdiraPlan(
           expiresAt,
           isActive: true,
           Paidprice: parseInt(amount),
-          totalDocuments: 3,
-          totalDocumentsUsed: 0,
         },
         include: {
           plan: true,
@@ -1673,7 +1690,91 @@ async function updateUserAdiraPlan(
       };
     }
 
-    if (newPlan === "FREE") {
+    if (existingSubscription == "compane" && currencyType === "USD") {
+      const activePlan = await prisma.userAllUSPlan.findFirst({
+        where: {
+          userId: mongoId,
+          // subscriptionId: existingSubscription,
+          isActive: true,
+        },
+      });
+
+      // If a plan is found, delete it
+      if (activePlan) {
+        deletePlan = await prisma.userAllUSPlan.delete({
+          where: {
+            userId_planName: {
+              userId: activePlan.userId,
+              planName: activePlan.planName,
+            },
+          },
+        });
+      }
+
+      updatedUserPlan = await prisma.userAllUSPlan.create({
+        data: {
+          userId: mongoId,
+          planName: newPlan,
+          subscriptionId: razorpay_subscription_id,
+          createdAt,
+          expiresAt,
+          isActive: true,
+          Paidprice: parseInt(amount),
+        },
+        include: {
+          plan: true,
+        },
+      });
+
+      return {
+        user: updatedUserPlan.mongoId,
+        plan: updatedUserPlan.planName,
+      };
+    }
+
+    if (existingSubscription == "compane" && currencyType === "GBP") {
+      const activePlan = await prisma.userAllUKPlan.findFirst({
+        where: {
+          userId: mongoId,
+          // subscriptionId: existingSubscription,
+          isActive: true,
+        },
+      });
+
+      // If a plan is found, delete it
+      if (activePlan) {
+        deletePlan = await prisma.userAllUKPlan.delete({
+          where: {
+            userId_planName: {
+              userId: activePlan.userId,
+              planName: activePlan.planName,
+            },
+          },
+        });
+      }
+
+      updatedUserPlan = await prisma.userAllUKPlan.create({
+        data: {
+          userId: mongoId,
+          planName: newPlan,
+          subscriptionId: razorpay_subscription_id,
+          createdAt,
+          expiresAt,
+          isActive: true,
+          Paidprice: parseInt(amount),
+        },
+        include: {
+          plan: true,
+        },
+      });
+
+      return {
+        user: updatedUserPlan.mongoId,
+        plan: updatedUserPlan.planName,
+      };
+    }
+
+    if (newPlan === "FREE" && currencyType === "INR") {
       updatedUserPlan = await prisma.userAllPlan.create({
         data: {
           userId: mongoId,
@@ -1691,7 +1792,43 @@ async function updateUserAdiraPlan(
       };
     }
 
-    if (existingSubscription !== "") {
+    if (newPlan === "FREE" && currencyType === "USD") {
+      updatedUserPlan = await prisma.userAllUSPlan.create({
+        data: {
+          userId: mongoId,
+          planName: newPlan,
+          subscriptionId: razorpay_subscription_id,
+          isActive: true,
+          createdAt,
+          expiresAt,
+          Paidprice: parseInt(amount),
+        },
+      });
+      return {
+        user: updatedUserPlan.mongoId,
+        plan: updatedUserPlan.planName,
+      };
+    }
+
+    if (newPlan === "FREE" && currencyType === "GBP") {
+      updatedUserPlan = await prisma.userAllUKPlan.create({
+        data: {
+          userId: mongoId,
+          planName: newPlan,
+          subscriptionId: razorpay_subscription_id,
+          isActive: true,
+          createdAt,
+          expiresAt,
+          Paidprice: parseInt(amount),
+        },
+      });
+      return {
+        user: updatedUserPlan.mongoId,
+        plan: updatedUserPlan.planName,
+      };
+    }
+
+    if (existingSubscription !== "" && currencyType === "INR") {
       // Find the plan that is active
       const activePlan = await prisma.userAllPlan.findFirst({
         where: {
@@ -1794,6 +1931,244 @@ async function updateUserAdiraPlan(
         }
       } else {
         updatedUserPlan = await prisma.userAllPlan.create({
+          data: {
+            userId: mongoId,
+            planName: newPlan,
+            subscriptionId: razorpay_subscription_id,
+            createdAt,
+            expiresAt,
+            isActive: true,
+            Paidprice: parseInt(amount),
+          },
+          include: {
+            plan: true,
+          },
+        });
+      }
+    }
+
+    if (existingSubscription !== "" && currencyType === "USD") {
+      // Find the plan that is active
+      const activePlan = await prisma.userAllUSPlan.findFirst({
+        where: {
+          userId: mongoId,
+          subscriptionId: existingSubscription,
+          isActive: true,
+        },
+      });
+
+      // If a plan is found, delete it
+      if (activePlan) {
+        deletePlan = await prisma.userAllUSPlan.delete({
+          where: {
+            userId_planName: {
+              userId: activePlan.userId,
+              planName: activePlan.planName,
+            },
+          },
+        });
+      }
+
+      if (refferalCode || couponCode) {
+        updatedUserPlan = await prisma.userAllUSPlan.create({
+          data: {
+            userId: mongoId,
+            planName: newPlan,
+            subscriptionId: razorpay_subscription_id,
+            isActive: true,
+            createdAt,
+            expiresAt,
+            referralCodeId: refferalCode,
+            isCouponCode: couponCode,
+            Paidprice: parseInt(amount),
+          },
+          include: {
+            plan: true,
+          },
+        });
+
+        if (refferalCode) {
+          await prisma.referralCode.update({
+            where: {
+              referralCode: refferalCode,
+            },
+            data: {
+              redeemedBy: {
+                connect: { mongoId: mongoId },
+              },
+              redeemed: true,
+            },
+          });
+        }
+      } else {
+        updatedUserPlan = await prisma.userAllUSPlan.create({
+          data: {
+            userId: mongoId,
+            planName: newPlan,
+            subscriptionId: razorpay_subscription_id,
+            createdAt,
+            expiresAt,
+            isActive: true,
+            Paidprice: parseInt(amount),
+          },
+          include: {
+            plan: true,
+          },
+        });
+      }
+    } else {
+      if (refferalCode || couponCode) {
+        updatedUserPlan = await prisma.userAllUSPlan.create({
+          data: {
+            userId: mongoId,
+            planName: newPlan,
+            subscriptionId: razorpay_subscription_id,
+            isActive: true,
+            createdAt,
+            expiresAt,
+            referralCodeId: refferalCode,
+            isCouponCode: couponCode,
+            Paidprice: parseInt(amount),
+          },
+          include: {
+            plan: true,
+          },
+        });
+
+        if (refferalCode) {
+          await prisma.referralCode.update({
+            where: {
+              referralCode: refferalCode,
+            },
+            data: {
+              redeemedBy: {
+                connect: { mongoId: mongoId },
+              },
+              redeemed: true,
+            },
+          });
+        }
+      } else {
+        updatedUserPlan = await prisma.userAllUSPlan.create({
+          data: {
+            userId: mongoId,
+            planName: newPlan,
+            subscriptionId: razorpay_subscription_id,
+            createdAt,
+            expiresAt,
+            isActive: true,
+            Paidprice: parseInt(amount),
+          },
+          include: {
+            plan: true,
+          },
+        });
+      }
+    }
+
+    if (existingSubscription !== "" && currencyType === "GBP") {
+      // Find the plan that is active
+      const activePlan = await prisma.userAllUKPlan.findFirst({
+        where: {
+          userId: mongoId,
+          subscriptionId: existingSubscription,
+          isActive: true,
+        },
+      });
+
+      // If a plan is found, delete it
+      if (activePlan) {
+        deletePlan = await prisma.userAllUKPlan.delete({
+          where: {
+            userId_planName: {
+              userId: activePlan.userId,
+              planName: activePlan.planName,
+            },
+          },
+        });
+      }
+
+      if (refferalCode || couponCode) {
+        updatedUserPlan = await prisma.userAllUKPlan.create({
+          data: {
+            userId: mongoId,
+            planName: newPlan,
+            subscriptionId: razorpay_subscription_id,
+            isActive: true,
+            createdAt,
+            expiresAt,
+            referralCodeId: refferalCode,
+            isCouponCode: couponCode,
+            Paidprice: parseInt(amount),
+          },
+          include: {
+            plan: true,
+          },
+        });
+
+        if (refferalCode) {
+          await prisma.referralCode.update({
+            where: {
+              referralCode: refferalCode,
+            },
+            data: {
+              redeemedBy: {
+                connect: { mongoId: mongoId },
+              },
+              redeemed: true,
+            },
+          });
+        }
+      } else {
+        updatedUserPlan = await prisma.userAllUKPlan.create({
+          data: {
+            userId: mongoId,
+            planName: newPlan,
+            subscriptionId: razorpay_subscription_id,
+            createdAt,
+            expiresAt,
+            isActive: true,
+            Paidprice: parseInt(amount),
+          },
+          include: {
+            plan: true,
+          },
+        });
+      }
+    } else {
+      if (refferalCode || couponCode) {
+        updatedUserPlan = await prisma.userAllUKPlan.create({
+          data: {
+            userId: mongoId,
+            planName: newPlan,
+            subscriptionId: razorpay_subscription_id,
+            isActive: true,
+            createdAt,
+            expiresAt,
+            referralCodeId: refferalCode,
+            isCouponCode: couponCode,
+            Paidprice: parseInt(amount),
+          },
+          include: {
+            plan: true,
+          },
+        });
+
+        if (refferalCode) {
+          await prisma.referralCode.update({
+            where: {
+              referralCode: refferalCode,
+            },
+            data: {
+              redeemedBy: {
+                connect: { mongoId: mongoId },
+              },
+              redeemed: true,
+            },
+          });
+        }
+      } else {
+        updatedUserPlan = await prisma.userAllUKPlan.create({
           data: {
             userId: mongoId,
             planName: newPlan,
@@ -2337,4 +2712,5 @@ module.exports = {
   generateInvoicePDF,
   createSocketMessage,
   updateUserAdiraPlan,
+  updateCurrency,
 };

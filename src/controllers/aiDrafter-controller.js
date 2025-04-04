@@ -1501,46 +1501,148 @@ async function createAdiraPlan(req, res) {
 async function retriveAdiraPlan(req, res) {
   console.log("hi");
   const { _id } = req.user;
+
+  console.log(req.user);
+  console.log(_id);
+
+  const currUser = await prisma.user.findFirst({
+    where: {
+      mongoId: _id,
+    },
+  });
+
+  const currencyType = currUser.currencyType;
+
   try {
-    const plan = await prisma.userAllPlan.findMany({
-      where: {
-        userId: _id,
-      },
-      include: {
-        User: true,
-        AllPlan: true,
-      },
-    });
+    let plans;
+    if (currencyType === "INR") {
+      const plan = await prisma.userAllPlan.findMany({
+        where: {
+          userId: _id,
+        },
+        include: {
+          user: true,
+          plan: true,
+        },
+      });
 
-    if (plan.length === 0) {
-      console.log("user do not have any plan. plan will be creating");
+      if (plan.length === 0) {
+        console.log("user do not have any plan. plan will be creating");
 
-      const createAt = new Date();
-      // const expiresAt = new Date(createAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+        const createAt = new Date();
+        // const expiresAt = new Date(createAt.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-      await updateUserAdiraPlan(
-        _id,
-        "FREE",
-        "15 MINUTES TRIAL",
-        "",
-        createAt,
-        null,
-        "",
-        null,
-        0
-      );
+        await updateUserAdiraPlan(
+          _id,
+          "FREE",
+          "15 MINUTES TRIAL",
+          "",
+          createAt,
+          null,
+          "",
+          null,
+          0,
+          currencyType
+        );
 
-      console.log("plan created");
+        console.log("plan created");
+      }
+      plans = await prisma.userAllPlan.findMany({
+        where: {
+          userId: _id,
+        },
+        include: {
+          user: true,
+          plan: true,
+        },
+      });
     }
-    let plans = await prisma.userAllPlan.findMany({
-      where: {
-        userId: _id,
-      },
-      include: {
-        User: true,
-        AllPlan: true,
-      },
-    });
+
+    if (currencyType === "USD") {
+      const plan = await prisma.userAllUSPlan.findMany({
+        where: {
+          userId: _id,
+        },
+        include: {
+          user: true,
+          plan: true,
+        },
+      });
+
+      if (plan.length === 0) {
+        console.log("user do not have any plan. plan will be creating");
+
+        const createAt = new Date();
+        // const expiresAt = new Date(createAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        await updateUserAdiraPlan(
+          _id,
+          "FREE",
+          "15 MINUTES TRIAL",
+          "",
+          createAt,
+          null,
+          "",
+          null,
+          0,
+          currencyType
+        );
+
+        console.log("plan created");
+      }
+      plans = await prisma.userAllUSPlan.findMany({
+        where: {
+          userId: _id,
+        },
+        include: {
+          user: true,
+          plan: true,
+        },
+      });
+    }
+
+    if (currencyType === "GBP") {
+      const plan = await prisma.userAllUKPlan.findMany({
+        where: {
+          userId: _id,
+        },
+        include: {
+          user: true,
+          plan: true,
+        },
+      });
+
+      if (plan.length === 0) {
+        console.log("user do not have any plan. plan will be creating");
+
+        const createAt = new Date();
+        // const expiresAt = new Date(createAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        await updateUserAdiraPlan(
+          _id,
+          "FREE",
+          "15 MINUTES TRIAL",
+          "",
+          createAt,
+          null,
+          "",
+          null,
+          0,
+          currencyType
+        );
+
+        console.log("plan created");
+      }
+      plans = await prisma.userAllUKPlan.findMany({
+        where: {
+          userId: _id,
+        },
+        include: {
+          user: true,
+          plan: true,
+        },
+      });
+    }
 
     res.status(200).json({ plans });
   } catch (error) {
