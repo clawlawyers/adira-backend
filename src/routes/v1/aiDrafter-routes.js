@@ -92,6 +92,10 @@ router.post(
   AiDrafter.rewriteDocument
 );
 
-router.patch("/updateCurrency", AiDrafter.updateCurrency);
+router.patch(
+  "/updateCurrency",
+  authMiddleware.checkClientAuth,
+  AiDrafter.updateCurrency
+);
 
 module.exports = router;
