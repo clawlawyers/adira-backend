@@ -1072,30 +1072,6 @@ async function translate(req, res) {
   }
 }
 
-async function updateCurrency(req, res) {
-  try {
-    const { currencyType } = req.body;
-    const userId = req.body.client._id;
-
-    console.log(req.body.client._id);
-
-    const updatedCurrency = await GptServices.updateCurrency(
-      userId,
-      currencyType
-    );
-    console.log(updatedCurrency);
-    return res.status(StatusCodes.OK).json({
-      message: "Time stored successfully",
-      updatedCurrency,
-    });
-  } catch (error) {
-    console.log(error);
-    res
-      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
-      .json(ErrorResponse({}, error.message));
-  }
-}
-
 // Controller to generate invoice PDF
 async function generateInvoice(req, res) {
   try {
@@ -1178,5 +1154,4 @@ module.exports = {
   upload,
   translate,
   generateInvoice,
-  updateCurrency,
 };

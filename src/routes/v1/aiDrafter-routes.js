@@ -92,4 +92,6 @@ router.post(
   AiDrafter.rewriteDocument
 );
 
+router.patch("/updateCurrency", AiDrafter.updateCurrency);
+
 module.exports = router;

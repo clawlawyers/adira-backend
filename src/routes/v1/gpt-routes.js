@@ -80,8 +80,6 @@ router.post("/translate", GptController.translate);
 //for genrating invoice pdf
 router.post("/generate-invoice", GptController.generateInvoice);
 
-router.patch("/updateCurrency", GptController.updateCurrency);
-
 // router.post("/dummy", GptController.caseSearchOn);
 // router.post("/dummyCheckbox", GptController.caseSearchOnCheck);
 // router.post("/funny", GptController.funPlan);

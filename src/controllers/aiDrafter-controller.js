@@ -1651,6 +1651,25 @@ async function retriveAdiraPlan(req, res) {
   }
 }
 
+async function updateCurrency(req, res) {
+  try {
+    const { currencyType } = req.body;
+    const { _id } = req.user;
+
+    const updatedCurrency = await GptServices.updateCurrency(_id, currencyType);
+    console.log(updatedCurrency);
+    return res.status(StatusCodes.OK).json({
+      message: "Time stored successfully",
+      updatedCurrency,
+    });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(ErrorResponse({}, error.message));
+  }
+}
+
 async function consumeDocumentToken(req, res) {
   try {
     const { _id } = req.user;
@@ -1718,4 +1737,5 @@ module.exports = {
   createAdiraPlan,
   consumeDocumentToken,
   rewriteDocument,
+  updateCurrency,
 };
