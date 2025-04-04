@@ -11,6 +11,7 @@ const bcrypt = require("bcrypt");
 const prisma = require("../config/prisma-client");
 const TalkToExpert = require("../models/talkToExpert");
 const { updateUserAdiraPlan } = require("../services/gpt-service");
+const { GptServices } = require("../services");
 
 async function uploadDocument(req, res) {
   try {
