@@ -118,7 +118,14 @@ async function FetchcreateDocument() {
 
 async function getDocumentFromPrompt(req, res) {
   try {
-    const { doc_id, prompt, country } = req.body;
+    let { doc_id, prompt, country } = req.body;
+    if (country === "INR") {
+      country = "india";
+    } else if (country === "USD") {
+      country = "us";
+    } else if (country === "GBP") {
+      country = "uk";
+    }
     const fetchedData = await FetchgetDocumentFromPrompt({
       doc_id,
       prompt,
@@ -1240,6 +1247,15 @@ async function handleFileUpload(req, res) {
     });
     formData.append("query", query);
     formData.append("language", language);
+
+    if (country === "INR") {
+      country = "india";
+    } else if (country === "USD") {
+      country = "us";
+    } else if (country === "GBP") {
+      country = "uk";
+    }
+
     formData.append("location", country);
 
     // Prepare headers with the correct content type for multipart/form-data
