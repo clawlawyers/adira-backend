@@ -118,8 +118,12 @@ async function FetchcreateDocument() {
 
 async function getDocumentFromPrompt(req, res) {
   try {
-    const { doc_id, prompt } = req.body;
-    const fetchedData = await FetchgetDocumentFromPrompt({ doc_id, prompt });
+    const { doc_id, prompt, country } = req.body;
+    const fetchedData = await FetchgetDocumentFromPrompt({
+      doc_id,
+      prompt,
+      country,
+    });
     return res.status(StatusCodes.OK).json(SuccessResponse({ fetchedData }));
   } catch (error) {
     console.log(error);
@@ -130,13 +134,13 @@ async function getDocumentFromPrompt(req, res) {
   }
 }
 
-async function FetchgetDocumentFromPrompt({ doc_id, prompt }) {
+async function FetchgetDocumentFromPrompt({ doc_id, prompt, country }) {
   try {
     // Dynamically import node-fetch
     const fetch = (await import("node-fetch")).default;
     const response = await fetch(`${AL_DRAFTER_API}/get_document_from_prompt`, {
       method: "POST",
-      body: JSON.stringify({ doc_id, prompt }),
+      body: JSON.stringify({ doc_id, prompt, country }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -1227,6 +1231,7 @@ async function handleFileUpload(req, res) {
     const fileBuffer = req.file.buffer; // Get the file data from memory
     const query = req.body.query;
     const language = req.body.language;
+    const country = req.body.country;
 
     const formData = new FormData();
     formData.append("file", fileBuffer, {
@@ -1235,6 +1240,7 @@ async function handleFileUpload(req, res) {
     });
     formData.append("query", query);
     formData.append("language", language);
+    formData.append("location", country);
 
     // Prepare headers with the correct content type for multipart/form-data
     const headers = {
